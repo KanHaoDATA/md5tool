@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giao diện Đăng ký/Đăng nhập</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      font-family: sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    .container {
+      width: 90vw;
+      max-width: 350px;
+      background: #111;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #00f0ff;
+      border: 2px solid #00f0ff;
+    }
+    h2 {
+      text-align: center;
+      color: #00f0ff;
+      cursor: pointer;
+    }
+    form {
+      display: none;
+      margin-top: 10px;
+    }
+    form.active {
+      display: block;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #222;
+      color: white;
+    }
+    button {
+      background: #00f0ff;
+      color: black;
+      font-weight: bold;
+      border: none;
+    }
+    #message {
+      color: #0f0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 onclick="toggleForm('registerForm')">Đăng ký</h2>
+    <form id="registerForm">
+      <input type="text" id="registerKey" placeholder="Nhập key muốn tạo" required>
+      <button type="submit">Đăng ký</button>
+    </form>
+
+    <h2 onclick="toggleForm('loginForm')">Đăng nhập</h2>
+    <form id="loginForm">
+      <input type="text" id="loginKey" placeholder="Nhập key của bạn" required>
+      <button type="submit">Đăng nhập</button>
+    </form>
+
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const messageEl = document.getElementById("message");
+
+    function toggleForm(id) {
+      const form = document.getElementById(id);
+      form.classList.toggle('active');
+    }
+
+    document.getElementById("registerForm").onsubmit = function(e) {
+      e.preventDefault();
+      const key = document.getElementById("registerKey").value.trim();
+      let keys = JSON.parse(localStorage.getItem("keys") || "{}");
+      if (keys[key]) {
+        alert("Key đã tồn tại!");
+      } else {
+        keys[key] = { active: false };
+        localStorage.setItem("keys", JSON.stringify(keys));
+        alert("Đăng ký thành công. Chờ admin kích hoạt.");
+      }
+    };
+
+    document.getElementById("loginForm").onsubmit = function(e) {
+      e.preventDefault();
+      const key = document.getElementById("loginKey").value.trim();
+      let keys = JSON.parse(localStorage.getItem("keys") || "{}");
+      if (keys[key]) {
+        if (keys[key].active) {
+          alert("Đăng nhập thành công!");
+        } else {
+          alert("Key chưa được kích hoạt.");
+        }
+      } else {
+        alert("Key không tồn tại.");
+      }
+    };
+
+    window.addEventListener("storage", function(event) {
+      if (event.key === "keys") {
+        messageEl.textContent = "Có key mới được kích hoạt! Hãy đăng nhập lại.";
+      }
+    });
+  </script>
+</body>
+</html>

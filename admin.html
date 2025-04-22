@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Quản lý Key</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      font-family: sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    .admin-box {
+      width: 90vw;
+      max-width: 400px;
+      background: #222;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px #00bcd4;
+      border: 2px solid #00bcd4;
+    }
+    h2 {
+      text-align: center;
+      color: #00bcd4;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    li {
+      margin: 10px 0;
+      padding: 10px;
+      background: #333;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      background: #00bcd4;
+      color: black;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button.delete {
+      background: #ff5252;
+      color: white;
+    }
+    .status {
+      font-size: 14px;
+    }
+    .form-group {
+      margin: 10px 0;
+    }
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-box">
+    <h2>Quản lý Key</h2>
+    
+    <!-- Form nhập key mới -->
+    <div class="form-group">
+      <label for="newKey">Nhập Key Mới:</label>
+      <input type="text" id="newKey" placeholder="Nhập key">
+    </div>
+    <div class="form-group">
+      <label for="expiryDate">Ngày hết hạn:</label>
+      <input type="date" id="expiryDate">
+    </div>
+    <div class="form-actions">
+      <button onclick="addNewKey()">Thêm Key Mới</button>
+    </div>
+
+    <!-- Danh sách các key -->
+    <ul id="keyList"></ul>
+  </div>
+
+  <script>
+    // Load các key từ localStorage
+    function loadKeys() {
+      const list = document.getElementById("keyList");
+      list.innerHTML = "";
+      const keys = JSON.parse(localStorage.getItem("keys") || "{}");
+      const now = new Date();
+
+      Object.entries(keys).forEach(([key, data]) => {
+        const li = document.createElement("li");
+
+        const expired = data.expiry ? new Date(data.expiry) < now : false;
+        const activeText = data.active ? "Đã kích hoạt" : "Chưa kích hoạt";
+        const expiryText = data.expiry ? `Hạn: ${data.expiry}` : "Không hạn";
+
+        li.innerHTML = `
+          <div><strong>Key:</strong> ${key}</div>
+          <div class="status"><strong>Trạng thái:</strong> ${activeText}${expired ? " (Hết hạn)" : ""}</div>
+          <div class="status">${expiryText}</div>
+          <div class="actions">
+            ${!data.active ? `<button onclick="activateKey('${key}')">Kích hoạt</button>` : ""}
+            <button class="delete" onclick="deleteKey('${key}')">Xóa</button>
+            <button onclick="copyKey('${key}')">Sao chép</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // Thêm key mới vào localStorage
+    function addNewKey() {
+      const newKey = document.getElementById("newKey").value;
+      const expiryDate = document.getElementById("expiryDate").value;
+
+      if (newKey && expiryDate) {
+        const keys = JSON.parse(localStorage.getItem("keys") || "{}");
+        keys[newKey] = {
+          active: false,
+          expiry: expiryDate
+        };
+        localStorage.setItem("keys", JSON.stringify(keys));
+        alert(`Đã thêm key: ${newKey}`);
+        loadKeys();
+        document.getElementById("newKey").value = "";
+        document.getElementById("expiryDate").value = "";
+      } else {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+      }
+    }
+
+    // Kích hoạt key
+    function activateKey(key) {
+      const keys = JSON.parse(localStorage.getItem("keys") || "{}");
+      if (keys[key]) {
+        keys[key].active = true;
+        localStorage.setItem("keys", JSON.stringify(keys));
+        alert(`Đã kích hoạt key: ${key}`);
+        loadKeys();
+      }
+    }
+
+    // Xóa key
+    function deleteKey(key) {
+      if (confirm(`Bạn có chắc muốn xóa key: ${key}?`)) {
+        const keys = JSON.parse(localStorage.getItem("keys") || "{}");
+        delete keys[key];
+        localStorage.setItem("keys", JSON.stringify(keys));
+        alert(`Đã xóa key: ${key}`);
+        loadKeys();
+      }
+    }
+
+    // Sao chép key vào clipboard
+    function copyKey(key) {
+      navigator.clipboard.writeText(key).then(() => {
+        alert(`Đã sao chép key: ${key}`);
+      }).catch(err => {
+        alert("Không thể sao chép key.");
+      });
+    }
+
+    loadKeys();
+  </script>
+</body>
+</html>
